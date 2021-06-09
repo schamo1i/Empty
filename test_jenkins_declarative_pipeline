@@ -1,0 +1,30 @@
+pipeline{
+    agent any
+    stages{
+        stage("Git Checkout") {
+            steps {
+                git credentialsId: 'github', url: 'https://github.com/schamo1i/Empty.git'
+            }
+            
+        }
+    
+        stage ("Maven Build") {
+            steps {
+                sh 'mvn clean package'
+            }
+            
+        }
+        stage ("tomcat-deploy") {
+            steps{
+                sh """
+                    sshpass -p "redhat" scp target/flipkart-1.0-SNAPSHOT.jar root@172.17.0.2:/usr/local/tomcat/webapps/
+                    ssh root@172.168.0.2 /usr/local/tomcat/shutdown.sh
+                    ssh root@172.168.0.2 /usr/local/tomcat/startup.sh
+                """
+            }
+            
+        }
+        
+    }
+    
+}
